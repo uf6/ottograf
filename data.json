@@ -1,0 +1,33 @@
+{
+  "directed": "true",
+  "graph": [],
+  "nodes": [
+    {
+      "id": "http://iilab.org/#jun",
+      "mail": "jun@iilab.org",
+      "name": "Jun Matsushita"
+    },
+    {
+      "id": "https://wwelves.org/perpetual-tripper",
+      "name": "Elf Pavlik",
+      "type": "knows"
+    },
+    {
+      "id": "pudo",
+      "name": "Friedrich Lindenberg",
+      "type": "knows"
+    }
+  ],
+  "links": [
+    {
+      "source": 0,
+      "type": "knows",
+      "target": 2
+    },
+    {
+      "source": 0,
+      "type": "knows",
+      "target": 1
+    }
+  ]
+}

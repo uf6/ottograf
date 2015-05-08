@@ -1,0 +1,22 @@
+{
+  "@context": {
+    "name": "http://xmlns.com/foaf/0.1/name",
+    "knows": { 
+      "@id": "http://xmlns.com/foaf/0.1/knows",
+      "@relation": true
+    }
+  },
+  "@id": "http://iilab.org/#jun",
+  "name": "Jun Matsushita",
+  "mail": "jun@iilab.org",
+  "knows": [
+    {
+      "@id" : "pudo",
+      "name": "Friedrich Lindenberg"
+    },
+    {
+      "@id": "https://wwelves.org/perpetual-tripper",
+      "name": "Elf Pavlik"
+    }
+  ]
+}
