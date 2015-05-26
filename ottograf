@@ -1,0 +1,116 @@
+#!/bin/bash
+display_usage() { 
+  echo "ottograf - Transforms a JSON-LD input with @relation hints into a node/edges json output." 
+  echo -e "\nUsage:\nottograf [format] [options] input.jsonld [output.json] [flags]" 
+  echo -e "\n\t format :"
+  echo -e "" 
+  echo -e "\t          d3      is -r @relation -n nodes -e links -s source -t target -p 'directed: \"true\", graph: [],'"
+  echo -e "\t          kumu    is -r @relation -n elements -e connections -i label -s from -t to "
+  echo -e ""
+  echo -e "\t input options : " 
+  echo -e "" 
+  echo -e "\t          -r|--relation-hint     key             : name of relation hint key (of boolean value) used to differentiate nodes and edges | default: @relation"
+  echo -e "\t          -l|--nodes-label       key             : name of key transformed into the node label | default: none"
+  echo -e "" 
+  echo -e "\t output options : " 
+  echo -e "" 
+  echo -e "\t          -n|--nodes-key         key             : name of key for nodes array in output graph | default: nodes"
+  echo -e "\t          -e|--edges-key         key             : name of key for edges array in output graph | default: links"
+  echo -e "\t          -s|--edges-source      key             : name of edge key for source node in output graph | default: source"
+  echo -e "\t          -t|--edges-target      key             : name of edge key for target node in output graph | default: target"
+  echo -e "\t          -i|--edges-index       index|id        : are edges indexed numerically (zero based array) or by node id | default: numeric"
+  echo -e "\t          -p|--graph-prefix      prefix          : key/value pairs prefixed to the resulting output graph | default: none"
+  echo -e "" 
+  echo -e "\t flags: " 
+  echo -e "" 
+  echo -e "\t          -h|--help "
+  echo -e "\t          -c|--compact "
+  echo -e "\t          -d|--debug "
+  echo -e "" 
+  echo -e "\t examples : " 
+  echo -e "" 
+  echo -e "\t  Outputs transform results on screen with the default options " 
+  echo -e "\t  ottograf data.jsonld" 
+  } 
+
+# if less than one arguments supplied, display usage 
+  if [  $# -le 0 ] 
+  then 
+    display_usage
+    exit 1
+  fi 
+ 
+# check whether user had supplied -h or --help . If yes display usage 
+  if [[ ( $# == "--help") ||  $# == "-h" ]] 
+  then 
+    display_usage
+    exit 0
+  fi 
+
+#defaults
+format=""
+relation="@relation"
+nodes="nodes"
+edges="links"
+index="numeric"
+src="source"
+trg="target"
+nodes_label="\"\""
+graph_prefix="{}"
+
+# process options
+jq_opts=""
+tee=">"
+pointer=1
+
+while [[ $# > 0 ]]; do
+  key="$1"
+  case $key in
+      # formats
+      d3|kumu)                  format=$key; shift;;
+      # options with arguments
+      -r|--relation-hint)       relation=$2; shift 2;;
+      -n|--nodes-key)           nodes=$2; shift 2;;
+      -e|--edges-key)           edges=$2; shift 2;;
+      -s|--edges-source)        src=$2; shift 2;;
+      -t|--edges-target)        trg=$2; shift 2;;
+      -i|--edges-index)         index=$2; shift 2;;
+      -l|--nodes-label)         nodes_label=$2; shift 2;;
+      -p|--graph-prefix)        graph_prefix=$2; shift 2;;
+      # binary flags
+      -c|--compact)             jq_opts=$jq_opts + " -c"; shift;;
+      -d|--debug)               tee="| tee"; debug=true; shift;;
+      # unknown option
+      *)
+        if [ -z $input ]; then input=$1 ; shift 
+        elif [ -z $output ]; then output=$1 ; shift
+        else echo -e "Error: ottograf can only take one input file and one output file as arguments"; exit 0
+        fi
+      ;;
+  esac
+done
+
+# process format
+case $format in
+  d3) graph_prefix="{\"directed\":\"true\",\"graph\":\"[]]\"}";;
+  kumu) nodes="elements"; edges="connections"; src="from"; trg="to"; index="label";;
+esac
+
+if [ -z $output ]; then tee=""; fi
+
+jq_cmd="jq $jq_opts -f /usr/local/bin/ottograf.jq --arg opt_nodes $nodes --arg opt_edges $edges --arg opt_source $src --arg opt_target $trg --arg opt_index $index --arg opt_relation $relation --arg opt_nodes_label $nodes_label --arg opt_graph_prefix $graph_prefix $tee $output"
+
+if [ $debug=="true" ]; then echo "[debug] -- jq command   -- $jq_cmd"; fi
+if [ $debug=="true" ]; then echo "[debug] -- format       -- $format"; fi
+if [ $debug=="true" ]; then echo "[debug] -- input        -- $input"; fi
+if [ $debug=="true" ]; then echo "[debug] -- output       -- $output"; fi
+if [ $debug=="true" ]; then echo "[debug] -- nodes        -- $nodes"; fi
+if [ $debug=="true" ]; then echo "[debug] -- edges        -- $edges"; fi
+if [ $debug=="true" ]; then echo "[debug] -- source       -- $src"; fi
+if [ $debug=="true" ]; then echo "[debug] -- target       -- $trg"; fi
+if [ $debug=="true" ]; then echo "[debug] -- index        -- $index"; fi
+if [ $debug=="true" ]; then echo "[debug] -- relation     -- $relation"; fi
+if [ $debug=="true" ]; then echo "[debug] -- nodes_label  -- $nodes_label"; fi
+if [ $debug=="true" ]; then echo "[debug] -- graph_prefix -- $graph_prefix"; fi
+
+eval "cat $input | $jq_cmd"

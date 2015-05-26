@@ -43,7 +43,10 @@ Usage:
  - ```git clone https://github.com/uf6/ottograf.git```
  - ```cd ottograf; ./transform.sh data.jsonld data.json```
 
-Using a ```"@relation"``` boolean attribute in the JSON-LD ```@context``` specifies which attributes are actual "network relations" as opposed to other predicates. In the example below, an foaf representation application could represent the ```knows``` relations as edges in a visualisation while the other predicates (```name```, ```mail```, or any other without the ```"@relation": true``` hint, would be displayed as a property of the ```"node"``` in the visualisation.
+Install
+ - ```ln transform.sh /usr/local/bin/ottograf```
+
+Using a ```"@relation"``` boolean attribute in the JSON-LD ```@context``` specifies which attributes are actual "network relations" as opposed to other predicates. In the example below, an foaf representation application could represent the ```knows``` relations as edges in a visualisation while the other predicates (```name```, ```mail```, or any other without the ```"@relation": true``` hint...), would be displayed as a property of the ```"node"``` in the visualisation.
 
 ## Example 
 
