@@ -54,14 +54,13 @@
               | [ $link ] 
               | contains($keys)))
   | [ .[].value[]
-    | { ($opt_source)   : ( if ($opt_index == "numeric") then ( [ $nodes[] | .id ]| index($id) ) else $id end )
+    | { ($opt_source)   : ( if ($opt_index == "numeric") then ( [ $nodes[] | .id ]| index($id) ) else ($id) end )
       , type : $link
-      , ($opt_target)   : ( if ($opt_index == "numeric") then ( .["@id"] as $target | [ $nodes[] | .id ]| index($target) ) else .["@id"] end)
+      , ($opt_target)   : ( if ($opt_index == "numeric") then ( .["@id"] as $target | [ $nodes[] | .id ]| index($target) ) else (.["@id"]?) end)
       } ]
-  ] | map(select(length !=0)) 
-    | reduce .[] as $item ( [] 
+  ] | reduce .[] as $item ( [] 
                           ; . + $item )
-    | . as $edges 
+    | [ .[] | select( (.from? | length) !=0 ) ] | . as $edges 
 | ($opt_graph_prefix | fromjson) 
   * { ($opt_nodes): $nodes
     , ($opt_edges): $edges 

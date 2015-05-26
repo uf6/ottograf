@@ -48,6 +48,7 @@ display_usage() {
   fi 
 
 #defaults
+debug=false
 format=""
 relation="@relation"
 nodes="nodes"
@@ -100,17 +101,17 @@ if [ -z $output ]; then tee=""; fi
 
 jq_cmd="jq $jq_opts -f /usr/local/bin/ottograf.jq --arg opt_nodes $nodes --arg opt_edges $edges --arg opt_source $src --arg opt_target $trg --arg opt_index $index --arg opt_relation $relation --arg opt_nodes_label $nodes_label --arg opt_graph_prefix $graph_prefix $tee $output"
 
-if [ $debug=="true" ]; then echo "[debug] -- jq command   -- $jq_cmd"; fi
-if [ $debug=="true" ]; then echo "[debug] -- format       -- $format"; fi
-if [ $debug=="true" ]; then echo "[debug] -- input        -- $input"; fi
-if [ $debug=="true" ]; then echo "[debug] -- output       -- $output"; fi
-if [ $debug=="true" ]; then echo "[debug] -- nodes        -- $nodes"; fi
-if [ $debug=="true" ]; then echo "[debug] -- edges        -- $edges"; fi
-if [ $debug=="true" ]; then echo "[debug] -- source       -- $src"; fi
-if [ $debug=="true" ]; then echo "[debug] -- target       -- $trg"; fi
-if [ $debug=="true" ]; then echo "[debug] -- index        -- $index"; fi
-if [ $debug=="true" ]; then echo "[debug] -- relation     -- $relation"; fi
-if [ $debug=="true" ]; then echo "[debug] -- nodes_label  -- $nodes_label"; fi
-if [ $debug=="true" ]; then echo "[debug] -- graph_prefix -- $graph_prefix"; fi
+if [ "$debug" = true ]; then echo "[debug] -- jq command   -- $jq_cmd"; fi
+if [ "$debug" = true ]; then echo "[debug] -- format       -- $format"; fi
+if [ "$debug" = true ]; then echo "[debug] -- input        -- $input"; fi
+if [ "$debug" = true ]; then echo "[debug] -- output       -- $output"; fi
+if [ "$debug" = true ]; then echo "[debug] -- nodes        -- $nodes"; fi
+if [ "$debug" = true ]; then echo "[debug] -- edges        -- $edges"; fi
+if [ "$debug" = true ]; then echo "[debug] -- source       -- $src"; fi
+if [ "$debug" = true ]; then echo "[debug] -- target       -- $trg"; fi
+if [ "$debug" = true ]; then echo "[debug] -- index        -- $index"; fi
+if [ "$debug" = true ]; then echo "[debug] -- relation     -- $relation"; fi
+if [ "$debug" = true ]; then echo "[debug] -- nodes_label  -- $nodes_label"; fi
+if [ "$debug" = true ]; then echo "[debug] -- graph_prefix -- $graph_prefix"; fi
 
 eval "cat $input | $jq_cmd"
