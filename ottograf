@@ -13,7 +13,7 @@ display_usage() {
   echo -e "               -p '{directed:\"true\",graph:[]}' -x @id id"
   echo -e "  kumu    : template for kumu using  " 
   echo -e "               -r @relation -n elements -e connections -i " 
-  echo -e "               -s from -t to -x @id label"
+  echo -e "               -s from -t to -x @id id"
   echo -e ""
   echo -e "options:"
   echo -e ""
@@ -22,6 +22,7 @@ display_usage() {
   echo -e "    -r|--relation-hint key    : name of relation hint key (of boolean value)"
   echo -e "                                used to differentiate nodes and edges"
   echo -e "                                (default=@relation)"
+  echo -e "    --cson-input               : uses cson(-ld) as input instead of default json(-ld)"
   echo -e "" 
   echo -e "  output:"
   echo -e "" 
@@ -98,6 +99,7 @@ src="source"
 trg="target"
 nodes_label="\"\""
 graph_prefix="{}"
+cson=""
 
 # process options
 jq_opts=""
@@ -120,8 +122,9 @@ while [[ $# > 0 ]]; do
       # options with two arguments
       -x|--transform)           transform="{\\\"input\\\":\\\"$2\\\",\\\"output\\\":\\\"$3\\\"},$transform"; shift 3;;
       # binary flags
+      --cson-input)             cson="cson2json | "; shift;;
       -i|--edges-index)         index="numeric"; shift;;
-      -c|--compact)             jq_opts=$jq_opts + " -c"; shift;;
+      -c|--compact)             jq_opts="${jq_opts} -c"; shift;;
       -d|--debug)               tee="| tee"; debug=true; shift;;
       # unknown option
       *)
@@ -138,16 +141,16 @@ done
 # process format
 case $format in
   d3) graph_prefix="\"{\"directed\":\"true\",\"graph\":\"[]\"}\""; index="numeric"; transform="{\\\"input\\\":\\\"@id\\\",\\\"output\\\":\\\"id\\\"},$transform";;
-  kumu) nodes="elements"; edges="connections"; src="from"; trg="to"; nodes_label="label" transform="{\\\"input\\\":\\\"@id\\\",\\\"output\\\":\\\"label\\\"},$transform";;
+  kumu) nodes="elements"; edges="connections"; src="from"; trg="to"; nodes_label="label" transform="{\\\"input\\\":\\\"@id\\\",\\\"output\\\":\\\"id\\\"},$transform";;
 esac
 
 transform="\"[${transform:0:${#transform}-1}]\""
 
 if [ -z $output ]; then tee=""; fi
 
-jq_cmd="jq $jq_opts -f /usr/local/bin/ottograf.jq --arg opt_nodes $nodes --arg opt_edges $edges --arg opt_source $src --arg opt_target $trg --arg opt_index $index --arg opt_relation $relation --arg opt_nodes_label $nodes_label --arg opt_graph_prefix $graph_prefix --arg opt_transform $transform $tee $output"
+jq_cmd="$cson jq $jq_opts -f /usr/local/bin/ottograf.jq --arg opt_nodes $nodes --arg opt_edges $edges --arg opt_source $src --arg opt_target $trg --arg opt_index $index --arg opt_relation $relation --arg opt_nodes_label $nodes_label --arg opt_graph_prefix $graph_prefix --arg opt_transform $transform $tee $output"
 
-if [ "$debug" = true ]; then echo "[debug] -- jq command   -- $jq_cmd"; fi
+if [ "$debug" = true ]; then echo "[debug] -- command      -- cat $input | $jq_cmd"; fi
 if [ "$debug" = true ]; then echo "[debug] -- format       -- $format"; fi
 if [ "$debug" = true ]; then echo "[debug] -- input        -- $input"; fi
 if [ "$debug" = true ]; then echo "[debug] -- output       -- $output"; fi

@@ -19,7 +19,7 @@ format:
                -p '{directed:"true",graph:[]}' -x @id id
   kumu    : template for kumu using  
                -r @relation -n elements -e connections -i 
-               -s from -t to -x @id label
+               -s from -t to -x @id id
 
 options:
 
@@ -28,6 +28,7 @@ options:
     -r|--relation-hint key    : name of relation hint key (of boolean value)
                                 used to differentiate nodes and edges
                                 (default=@relation)
+    -c|--cson-input           : uses cson(-ld) as input instead of default json(-ld)
 
   output:
 
@@ -48,7 +49,8 @@ options:
    transform:
 
     -x|--transform INPUT-KEY OUTPUT-KEY :
-                                key name transformation (can be entered several times to transform multiple keys)
+                                key name transformation (can be entered several times 
+                                to transform multiple keys)
                                 (default=)
 
 flags:
@@ -107,6 +109,7 @@ Benefits:
 
 Requirements: 
  - [jq 1.4](http://stedolan.github.io/jq/download/)
+ - (optional) [cson](https://github.com/bevry/cson)
 
 Usage:
  - ```git clone https://github.com/uf6/ottograf.git```
