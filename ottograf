@@ -1,36 +1,47 @@
 #!/bin/bash
 display_usage() { 
   echo "ottograf - Transforms a JSON-LD input with @relation hints into a node/edges json output." 
-  echo -e "\nUsage:\nottograf [format] [options] input.jsonld [output.json] [flags]" 
-  echo -e "\n\t format :"
-  echo -e "" 
-  echo -e "\t          d3      is -r @relation -n nodes -e links -s source -t target -p 'directed: \"true\", graph: [],'"
-  echo -e "\t          kumu    is -r @relation -n elements -e connections -i label -s from -t to "
   echo -e ""
-  echo -e "\t input options : " 
+  echo -e "usage:\t\t ottograf [format] [options] input.jsonld [output.json] [flags]\n" 
+  echo -e "format:\t\t d3      is -r @relation -n nodes -e links -s source -t target -p 'directed: \"true\", graph: [],' -x @id id"
+  echo -e "\t\t kumu    is -r @relation -n elements -e connections -i label -s from -t to -x @id label"
+  echo -e ""
+  echo -e "options:\t input:"
   echo -e "" 
-  echo -e "\t          -r|--relation-hint     key             : name of relation hint key (of boolean value) used to differentiate nodes and edges | default: @relation"
-  echo -e "\t          -l|--nodes-label       key             : name of key transformed into the node label | default: none"
+  echo -e "\t\t -r|--relation-hint     key             : name of relation hint key (of boolean value) used to differentiate nodes and edges | default: @relation"
   echo -e "" 
-  echo -e "\t output options : " 
+  echo -e "\t\t output:"
   echo -e "" 
-  echo -e "\t          -n|--nodes-key         key             : name of key for nodes array in output graph | default: nodes"
-  echo -e "\t          -e|--edges-key         key             : name of key for edges array in output graph | default: links"
-  echo -e "\t          -s|--edges-source      key             : name of edge key for source node in output graph | default: source"
-  echo -e "\t          -t|--edges-target      key             : name of edge key for target node in output graph | default: target"
-  echo -e "\t          -i|--edges-index       index|id        : are edges indexed numerically (zero based array) or by node id | default: numeric"
-  echo -e "\t          -p|--graph-prefix      prefix          : key/value pairs prefixed to the resulting output graph | default: none"
+  echo -e "\t\t -n|--nodes-key         key             : name of key for nodes array in output graph | default: nodes"
+  echo -e "\t\t -e|--edges-key         key             : name of key for edges array in output graph | default: links"
+  echo -e "\t\t -s|--edges-source      key             : name of edge key for source node in output graph | default: source"
+  echo -e "\t\t -t|--edges-target      key             : name of edge key for target node in output graph | default: target"
+  echo -e "\t\t -i|--edges-index       index|id        : are edges indexed numerically (zero based array) or by node id | default: numeric"
+  echo -e "\t\t -p|--graph-prefix      prefix          : key/value pairs prefixed to the resulting output graph (should be valid JSON without spaces) | default: none"
   echo -e "" 
-  echo -e "\t flags: " 
+  echo -e "\t\t transform:"
   echo -e "" 
-  echo -e "\t          -h|--help "
-  echo -e "\t          -c|--compact "
-  echo -e "\t          -d|--debug "
+  echo -e "\t\t -x|--transform         input-key output-key  : key name transformation (can be entered several times to transform multiple keys)  | default: none"
   echo -e "" 
-  echo -e "\t examples : " 
+  echo -e "flags:\t\t -h|--help "
+  echo -e "\t\t -c|--compact "
+  echo -e "\t\t -d|--debug "
   echo -e "" 
-  echo -e "\t  Outputs transform results on screen with the default options " 
-  echo -e "\t  ottograf data.jsonld" 
+  echo -e "examples:" 
+  echo -e "=========" 
+  echo -e "" 
+  echo -e "Outputs transform results on screen with the default options " 
+  echo -e "ottograf data.jsonld" 
+  echo -e "" 
+  echo -e "Outputs transform results to data.json file for use with d3.js " 
+  echo -e "ottograf d3 data.jsonld" 
+  echo -e "" 
+  echo -e "Outputs transform results to data.json file for use with d3.js " 
+  echo -e "ottograf data.jsonld -x @id name -x @type type"  
+  echo -e "" 
+  echo -e "Outputs transform results and debugging info on screen file for use with kumu.io and transform key 'name' into key 'label'" 
+  echo -e "ottograf -d kumu data.jsonld -x name label"
+  echo -e "" 
   } 
 
 # if less than one arguments supplied, display usage 
@@ -69,7 +80,7 @@ while [[ $# > 0 ]]; do
   case $key in
       # formats
       d3|kumu)                  format=$key; shift;;
-      # options with arguments
+      # options with one argument
       -r|--relation-hint)       relation=$2; shift 2;;
       -n|--nodes-key)           nodes=$2; shift 2;;
       -e|--edges-key)           edges=$2; shift 2;;
@@ -78,6 +89,8 @@ while [[ $# > 0 ]]; do
       -i|--edges-index)         index=$2; shift 2;;
       -l|--nodes-label)         nodes_label=$2; shift 2;;
       -p|--graph-prefix)        graph_prefix=$2; shift 2;;
+      # options with two arguments
+      -x|--transform)           transform="{\\\"input\\\":\\\"$2\\\",\\\"output\\\":\\\"$3\\\"},$transform"; shift 3;;
       # binary flags
       -c|--compact)             jq_opts=$jq_opts + " -c"; shift;;
       -d|--debug)               tee="| tee"; debug=true; shift;;
@@ -91,15 +104,19 @@ while [[ $# > 0 ]]; do
   esac
 done
 
+#process transform
+
 # process format
 case $format in
-  d3) graph_prefix="{\"directed\":\"true\",\"graph\":\"[]]\"}";;
-  kumu) nodes="elements"; edges="connections"; src="from"; trg="to"; index="label";;
+  d3) graph_prefix="\"{\"directed\":\"true\",\"graph\":\"[]\"}\"" transform="{\\\"input\\\":\\\"@id\\\",\\\"output\\\":\\\"id\\\"},$transform";;
+  kumu) nodes="elements"; edges="connections"; src="from"; trg="to"; index="label"; nodes_label="label" transform="{\\\"input\\\":\\\"@id\\\",\\\"output\\\":\\\"label\\\"},$transform";;
 esac
+
+transform="\"[${transform:0:${#transform}-1}]\""
 
 if [ -z $output ]; then tee=""; fi
 
-jq_cmd="jq $jq_opts -f /usr/local/bin/ottograf.jq --arg opt_nodes $nodes --arg opt_edges $edges --arg opt_source $src --arg opt_target $trg --arg opt_index $index --arg opt_relation $relation --arg opt_nodes_label $nodes_label --arg opt_graph_prefix $graph_prefix $tee $output"
+jq_cmd="jq $jq_opts -f /usr/local/bin/ottograf.jq --arg opt_nodes $nodes --arg opt_edges $edges --arg opt_source $src --arg opt_target $trg --arg opt_index $index --arg opt_relation $relation --arg opt_nodes_label $nodes_label --arg opt_graph_prefix $graph_prefix --arg opt_transform $transform $tee $output"
 
 if [ "$debug" = true ]; then echo "[debug] -- jq command   -- $jq_cmd"; fi
 if [ "$debug" = true ]; then echo "[debug] -- format       -- $format"; fi
