@@ -2,45 +2,74 @@
 display_usage() { 
   echo "ottograf - Transforms a JSON-LD input with @relation hints into a node/edges json output." 
   echo -e ""
-  echo -e "usage:\t\t ottograf [format] [options] input.jsonld [output.json] [flags]\n" 
-  echo -e "format:\t\t d3      is -r @relation -n nodes -e links -s source -t target -p 'directed: \"true\", graph: [],' -x @id id"
-  echo -e "\t\t kumu    is -r @relation -n elements -e connections -i label -s from -t to -x @id label"
+  echo -e "usage:"
   echo -e ""
-  echo -e "options:\t input:"
+  echo -e "  ottograf [format] [options] input.jsonld [output.json] [flags]" 
+  echo -e ""
+  echo -e "format:"
+  echo -e ""
+  echo -e "  d3      : template for d3.js using " 
+  echo -e "               -r @relation -n nodes -e links -s source -t target" 
+  echo -e "               -p '{directed:\"true\",graph:[]}' -x @id id"
+  echo -e "  kumu    : template for kumu using  " 
+  echo -e "               -r @relation -n elements -e connections -i " 
+  echo -e "               -s from -t to -x @id label"
+  echo -e ""
+  echo -e "options:"
+  echo -e ""
+  echo -e "  input:"
   echo -e "" 
-  echo -e "\t\t -r|--relation-hint     key             : name of relation hint key (of boolean value) used to differentiate nodes and edges | default: @relation"
+  echo -e "    -r|--relation-hint key    : name of relation hint key (of boolean value)"
+  echo -e "                                used to differentiate nodes and edges"
+  echo -e "                                (default=@relation)"
   echo -e "" 
-  echo -e "\t\t output:"
+  echo -e "  output:"
   echo -e "" 
-  echo -e "\t\t -n|--nodes-key         key             : name of key for nodes array in output graph | default: nodes"
-  echo -e "\t\t -e|--edges-key         key             : name of key for edges array in output graph | default: links"
-  echo -e "\t\t -s|--edges-source      key             : name of edge key for source node in output graph | default: source"
-  echo -e "\t\t -t|--edges-target      key             : name of edge key for target node in output graph | default: target"
-  echo -e "\t\t -i|--edges-index       index|id        : are edges indexed numerically (zero based array) or by node id | default: numeric"
-  echo -e "\t\t -p|--graph-prefix      prefix          : key/value pairs prefixed to the resulting output graph (should be valid JSON without spaces) | default: none"
+  echo -e "    -n|--nodes-key KEY        : name of key for nodes array in output graph"
+  echo -e "                                (default=nodes)"
+  echo -e "    -e|--edges-key KEY        : name of key for edges array in output graph"
+  echo -e "                                (default=links)"
+  echo -e "    -s|--edges-source KEY     : name of edge key for source node in output graph"
+  echo -e "                                (default=source)"
+  echo -e "    -t|--edges-target KEY     : name of edge key for target node in output graph"
+  echo -e "                                (default=target)"
+  echo -e "    -i|--edges-index          : edges's index is numerical (zero based array) "
+  echo -e "                                instead of default index with node @id"
+  echo -e "    -p|--graph-prefix PREFIX  : key/value pairs prefixed in output graph."
+  echo -e "                                should be valid JSON without spaces."
+  echo -e "                                (default=)"
   echo -e "" 
-  echo -e "\t\t transform:"
+  echo -e "   transform:"
   echo -e "" 
-  echo -e "\t\t -x|--transform         input-key output-key  : key name transformation (can be entered several times to transform multiple keys)  | default: none"
+  echo -e "    -x|--transform INPUT-KEY OUTPUT-KEY :"
+  echo -e "                                key name transformation (can be entered several times to transform multiple keys)"
+  echo -e "                                (default=)"
   echo -e "" 
-  echo -e "flags:\t\t -h|--help "
-  echo -e "\t\t -c|--compact "
-  echo -e "\t\t -d|--debug "
+  echo -e "flags:"
+  echo -e ""
+  echo -e "  -h|--help "
+  echo -e "  -c|--compact "
+  echo -e "  -d|--debug "
   echo -e "" 
   echo -e "examples:" 
   echo -e "=========" 
   echo -e "" 
   echo -e "Outputs transform results on screen with the default options " 
-  echo -e "ottograf data.jsonld" 
+  echo -e "" 
+  echo -e "  ottograf data.jsonld" 
   echo -e "" 
   echo -e "Outputs transform results to data.json file for use with d3.js " 
-  echo -e "ottograf d3 data.jsonld" 
+  echo -e "" 
+  echo -e "  ottograf d3 data.jsonld" 
   echo -e "" 
   echo -e "Outputs transform results to data.json file for use with d3.js " 
-  echo -e "ottograf data.jsonld -x @id name -x @type type"  
   echo -e "" 
-  echo -e "Outputs transform results and debugging info on screen file for use with kumu.io and transform key 'name' into key 'label'" 
-  echo -e "ottograf -d kumu data.jsonld -x name label"
+  echo -e "  ottograf data.jsonld -x @id name -x @type type"  
+  echo -e "" 
+  echo -e "Outputs transform results and debugging info on screen file for " 
+  echo -e "use with kumu.io and transform key 'name' into key 'label'" 
+  echo -e "" 
+  echo -e "  ottograf -d kumu data.jsonld -x name label"
   echo -e "" 
   } 
 
@@ -64,7 +93,7 @@ format=""
 relation="@relation"
 nodes="nodes"
 edges="links"
-index="numeric"
+index="@id"
 src="source"
 trg="target"
 nodes_label="\"\""
@@ -86,12 +115,12 @@ while [[ $# > 0 ]]; do
       -e|--edges-key)           edges=$2; shift 2;;
       -s|--edges-source)        src=$2; shift 2;;
       -t|--edges-target)        trg=$2; shift 2;;
-      -i|--edges-index)         index=$2; shift 2;;
       -l|--nodes-label)         nodes_label=$2; shift 2;;
       -p|--graph-prefix)        graph_prefix=$2; shift 2;;
       # options with two arguments
       -x|--transform)           transform="{\\\"input\\\":\\\"$2\\\",\\\"output\\\":\\\"$3\\\"},$transform"; shift 3;;
       # binary flags
+      -i|--edges-index)         index="numeric"; shift;;
       -c|--compact)             jq_opts=$jq_opts + " -c"; shift;;
       -d|--debug)               tee="| tee"; debug=true; shift;;
       # unknown option
@@ -108,8 +137,8 @@ done
 
 # process format
 case $format in
-  d3) graph_prefix="\"{\"directed\":\"true\",\"graph\":\"[]\"}\"" transform="{\\\"input\\\":\\\"@id\\\",\\\"output\\\":\\\"id\\\"},$transform";;
-  kumu) nodes="elements"; edges="connections"; src="from"; trg="to"; index="label"; nodes_label="label" transform="{\\\"input\\\":\\\"@id\\\",\\\"output\\\":\\\"label\\\"},$transform";;
+  d3) graph_prefix="\"{\"directed\":\"true\",\"graph\":\"[]\"}\""; index="numeric"; transform="{\\\"input\\\":\\\"@id\\\",\\\"output\\\":\\\"id\\\"},$transform";;
+  kumu) nodes="elements"; edges="connections"; src="from"; trg="to"; nodes_label="label" transform="{\\\"input\\\":\\\"@id\\\",\\\"output\\\":\\\"label\\\"},$transform";;
 esac
 
 transform="\"[${transform:0:${#transform}-1}]\""
