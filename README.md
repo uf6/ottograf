@@ -8,31 +8,54 @@ Transforms a JSON-LD input with @relation hints into a node/edges json output.
  - A conversion script written in [jq](http://stedolan.github.io/jq/) which transforms this format into a typical node/edge JSON format (that can be used for instance in d3.js or kumu)
 
 ```
-usage:       ottograf [format] [options] input.jsonld [output.json] [flags]
+usage:
 
-format:      d3      is -r @relation -n nodes -e links -s source -t target -p 'directed: "true", graph: [],' -x @id id
-         kumu    is -r @relation -n elements -e connections -i label -s from -t to -x @id label
+  ottograf [format] [options] input.jsonld [output.json] [flags]
 
-options:     input:
+format:
 
-             -r|--relation-hint     key             : name of relation hint key (of boolean value) used to differentiate nodes and edges | default: @relation
+  d3      : template for d3.js using 
+               -r @relation -n nodes -e links -s source -t target
+               -p '{directed:"true",graph:[]}' -x @id id
+  kumu    : template for kumu using  
+               -r @relation -n elements -e connections -i 
+               -s from -t to -x @id label
 
-             output:
+options:
 
-             -n|--nodes-key         key             : name of key for nodes array in output graph | default: nodes
-             -e|--edges-key         key             : name of key for edges array in output graph | default: links
-             -s|--edges-source      key             : name of edge key for source node in output graph | default: source
-             -t|--edges-target      key             : name of edge key for target node in output graph | default: target
-             -i|--edges-index       index|id        : are edges indexed numerically (zero based array) or by node id | default: numeric
-             -p|--graph-prefix      prefix          : key/value pairs prefixed to the resulting output graph (should be valid JSON without spaces) | default: none
+  input:
 
-             transform:
+    -r|--relation-hint key    : name of relation hint key (of boolean value)
+                                used to differentiate nodes and edges
+                                (default=@relation)
 
-             -x|--transform         input-key output-key  : key name transformation (can be entered several times to transform multiple keys)  | default: none
+  output:
 
-flags:       -h|--help 
-             -c|--compact 
-             -d|--debug 
+    -n|--nodes-key KEY        : name of key for nodes array in output graph
+                                (default=nodes)
+    -e|--edges-key KEY        : name of key for edges array in output graph
+                                (default=links)
+    -s|--edges-source KEY     : name of edge key for source node in output graph
+                                (default=source)
+    -t|--edges-target KEY     : name of edge key for target node in output graph
+                                (default=target)
+    -i|--edges-index          : edges's index is numerical (zero based array) 
+                                instead of default index with node @id
+    -p|--graph-prefix PREFIX  : key/value pairs prefixed in output graph.
+                                should be valid JSON without spaces.
+                                (default=)
+
+   transform:
+
+    -x|--transform INPUT-KEY OUTPUT-KEY :
+                                key name transformation (can be entered several times to transform multiple keys)
+                                (default=)
+
+flags:
+
+  -h|--help 
+  -c|--compact 
+  -d|--debug 
 ```
 
 ## Usage examples
