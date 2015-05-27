@@ -1,13 +1,59 @@
 # ottograf
 
-Graph format description and transformation prototypical musing to:
- - Experiment with human readable file formats for data with a network structure / graph data.
- - Create a transformation script to convert this to the most used graph formats.
+Transforms a JSON-LD input with @relation hints into a node/edges json output.
 
 ## What?
 
  - An ```@relation``` hint in JSON-LD to specify what are nodes and edges in a linked data document.
- - A conversion script written in [jq](http://stedolan.github.io/jq/) which transforms this format into a typical node/edge JSON format (that can be used for instance in d3.js)
+ - A conversion script written in [jq](http://stedolan.github.io/jq/) which transforms this format into a typical node/edge JSON format (that can be used for instance in d3.js or kumu)
+
+```
+usage:       ottograf [format] [options] input.jsonld [output.json] [flags]
+
+format:      d3      is -r @relation -n nodes -e links -s source -t target -p 'directed: "true", graph: [],' -x @id id
+         kumu    is -r @relation -n elements -e connections -i label -s from -t to -x @id label
+
+options:     input:
+
+             -r|--relation-hint     key             : name of relation hint key (of boolean value) used to differentiate nodes and edges | default: @relation
+
+             output:
+
+             -n|--nodes-key         key             : name of key for nodes array in output graph | default: nodes
+             -e|--edges-key         key             : name of key for edges array in output graph | default: links
+             -s|--edges-source      key             : name of edge key for source node in output graph | default: source
+             -t|--edges-target      key             : name of edge key for target node in output graph | default: target
+             -i|--edges-index       index|id        : are edges indexed numerically (zero based array) or by node id | default: numeric
+             -p|--graph-prefix      prefix          : key/value pairs prefixed to the resulting output graph (should be valid JSON without spaces) | default: none
+
+             transform:
+
+             -x|--transform         input-key output-key  : key name transformation (can be entered several times to transform multiple keys)  | default: none
+
+flags:       -h|--help 
+             -c|--compact 
+             -d|--debug 
+```
+
+## Usage examples
+
+Outputs transform results on screen with the default options 
+```ottograf data.jsonld```
+
+Outputs transform results to data.json file for use with d3.js 
+```ottograf d3 data.jsonld```
+
+Outputs transform results to data.json file for use with d3.js 
+```ottograf data.jsonld -x @id name -x @type type```
+
+Outputs transform results and debugging info on screen file for use with kumu.io and transform key 'name' into key 'label'
+```ottograf -d kumu data.jsonld -x name label```
+
+## Why?
+
+Graph format description and transformation prototypical musing to:
+ - Experiment with human readable file formats for data with a network structure / graph data.
+ - Create a transformation script to convert this to the most used graph formats.
 
 ![](https://docs.google.com/drawings/d/1hYCw-Ft44-wUGr3C8hvCemW4tHZclJOo7iBWOoDOynI/pub?w=682&h=354)
 
